@@ -3,6 +3,7 @@
 
 このプロジェクトは、幾何学的な規律と有機的なうねりを融合させた、新しい数字（0-9）のアニメーションタイポグラフィのプロトタイプです。
 
+### 🖼 Preview
 ![demo](https://github.com/user-attachments/assets/ea33864c-63cd-4546-a496-71d78a834d1c)
 
 
