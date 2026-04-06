@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometric Deco Numerals</title>
+    <style>
+:root {
+  --bg-color: #ffffff;
+  --digit-color: #000000;
+  --highlight-color: #ff3300;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#numeral-container {
+  width: 80vmin;
+  height: 80vmin;
+  filter: drop-shadow(0px 20px 40px rgba(0,0,0,0.15));
+}
+
+.digit-path {
+  fill: none;
+  stroke: var(--digit-color);
+  stroke-width: 16;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+}
+
+.digit-path-entering {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  /* Heavy, deliberate piston-like snap */
+  animation: unroll 2s cubic-bezier(0.85, 0, 0.15, 1) forwards;
+}
+
+.digit-path-leaving {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 0;
+  /* Heavy mechanical wipe */
+  animation: roll-away 2s cubic-bezier(0.85, 0, 0.15, 1) forwards;
+  opacity: 0.3;
+}
+
+@keyframes unroll {
+  0% {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes roll-away {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -400;
+    opacity: 0;
+  }
+}
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <svg id="numeral-container" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <g id="number-group"></g>
+      </svg>
+    </div>
+    <script>
+const DIGITS = {
+  0: [
+    "M 30,20 A 30,40 0 0,1 70,20",
+    "M 70,80 A 30,40 0 0,1 30,80",
+    "M 25,25 C 10,40 10,60 25,75",
+    "M 75,25 C 90,40 90,60 75,75"
+  ],
+  1: [
+    "M 30,30 C 40,10 50,20 50,30 L 50,90",
+    "M 40,90 L 60,90"
+  ],
+  2: [
+    "M 20,40 C 20,10 80,10 80,40 C 80,60 20,80 20,80",
+    "M 20,80 L 80,80 M 80,80 C 90,80 90,70 85,65"
+  ],
+  3: [
+    "M 20,20 C 50,5 80,20 70,45 C 60,70 50,45 50,45", 
+    "M 50,55 C 50,55 60,30 70,55 C 80,80 50,95 20,80"
+  ],
+  4: [
+    "M 70,90 L 70,10",
+    "M 70,10 L 20,60",
+    "M 15,60 L 80,60 C 90,60 90,50 85,45"
+  ],
+  5: [
+    "M 80,20 L 30,20 L 30,45",
+    "M 30,45 C 80,30 90,80 45,90 C 25,95 15,80 15,80"
+  ],
+  6: [
+    "M 80,20 C 60,5 30,20 20,50",
+    "M 20,50 C 10,80 40,100 65,85 C 90,70 70,40 45,55 C 30,65 35,80 35,80"
+  ],
+  7: [
+    "M 20,20 L 80,20",
+    "M 80,20 C 60,40 50,60 30,90",
+    "M 20,30 C 40,30 65,50 45,80"
+  ],
+  8: [
+    "M 50,50 C 80,30 80,10 50,10 C 20,10 20,30 50,50",
+    "M 50,50 C 20,70 20,90 50,90 C 80,90 80,70 50,50",
+    "M 30,25 C 40,20 50,30 45,40",
+    "M 70,75 C 60,80 50,70 55,60"
+  ],
+  9: [
+    "M 50,50 C 20,50 20,10 50,10 C 80,10 80,50 50,50",
+    "M 50,50 C 60,50 75,50 80,60 C 90,80 60,95 30,90"
+  ]
+};
+
+const numberGroup = document.getElementById('number-group');
+let currentDigit = -1;
+
+function renderDigit(digitValue) {
+  const paths = DIGITS[digitValue];
+  if (!paths) return;
+
+  const newG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  
+  paths.forEach((d) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('class', 'digit-path');
+    newG.appendChild(p);
+  });
+
+  numberGroup.appendChild(newG);
+
+  requestAnimationFrame(() => {
+    const childPaths = newG.querySelectorAll('path');
+    childPaths.forEach(p => {
+      const length = p.getTotalLength();
+      p.style.strokeDasharray = length;
+      p.style.strokeDashoffset = length;
+      
+      p.animate([
+        { strokeDashoffset: length, opacity: 0 },
+        { opacity: 1, offset: 0.05 },
+        { strokeDashoffset: 0, opacity: 1 }
+      ], {
+        duration: 800,
+        easing: 'cubic-bezier(0.85, 0, 0.15, 1)',
+        fill: 'forwards'
+      });
+    });
+  });
+
+  const oldG = numberGroup.firstElementChild;
+  if (oldG && oldG !== newG) {
+    const oldPaths = oldG.querySelectorAll('path');
+    oldPaths.forEach(p => {
+      const length = p.getTotalLength();
+      p.animate([
+        { strokeDashoffset: 0, opacity: 1 },
+        { strokeDashoffset: -length, opacity: 0 }
+      ], {
+        duration: 800,
+        easing: 'cubic-bezier(0.85, 0, 0.15, 1)',
+        fill: 'forwards'
+      });
+    });
+
+    setTimeout(() => {
+        if(numberGroup.contains(oldG)) {
+            numberGroup.removeChild(oldG);
+        }
+    }, 850);
+  }
+}
+
+function tick() {
+  if (currentDigit === -1) {
+    currentDigit = 0;
+  } else {
+    currentDigit = (currentDigit + 1) % 10;
+  }
+  renderDigit(currentDigit);
+}
+
+setInterval(tick, 1000);
+tick();
+    </script>
+  </body>
+</html>
